@@ -496,9 +496,9 @@ export class MapComponent implements AfterViewInit {
       appSettings.mapZoom = this.map.getZoom();
 
       this._propertiesLayer.addListener('mouseover', (event: google.maps.Data.MouseEvent) => {
-        const e : any = event;
+        const e: any = event;
         const isTouch: boolean = e.hasOwnProperty('domEvent') && (e.domEvent.type === 'touchstart' );
-        
+
         if ( !this.clickLockedOnSite  || isTouch ) {
 
           this.highlightedHeritageSiteInfo = new HeritageSiteInfo(event);
@@ -543,7 +543,7 @@ export class MapComponent implements AfterViewInit {
 
       this._propertiesLayer.addListener('click', (event: google.maps.Data.MouseEvent) => {
         if (this.clickLockedOnSite === false) {
-          //console.log('Click on the property again to unlock it');
+          // console.log('Click on the property again to unlock it');
           this.clickLockedFeature = event.feature;
           this._propertiesLayer.overrideStyle(this.clickLockedFeature, {
             strokeWeight: 6,
@@ -787,6 +787,7 @@ function recursiveExtendBounds(geometry, callback, thisArg) {
     });
   }
 }
+
 function truncateWKT(text: string): string {
   text = String(text);
   return text.length <= 500 ? text : text.substr(0, 500) + '…';

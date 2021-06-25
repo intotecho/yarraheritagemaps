@@ -1,6 +1,4 @@
 /**
- * Copyright 2018 Google LLC
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -61,7 +59,6 @@ import { OverlaysAPIService } from './services/overlays-api.service';
 import { LayerSelectComponent} from './map/layer-control/layer-control.component';
 import { OverlayInfoComponent } from './main/panels/overlay-info/overlay-info.component';
 import { HeritageSiteInfoComponent } from './main/panels/heritage-site-info/heritage-site-info.component';
-import { SplitComponent, SplitAreaDirective } from 'angular-split';
 import { GoogleTagManagerModule, GoogleTagManagerService } from 'angular-google-tag-manager';
 import { GoogleAnalyticsService } from './google-analytics.service';
 
@@ -111,9 +108,7 @@ if ( environment.production ) {
     ColorPickerModule,
     HttpClientModule,
     AngularSplitModule.forRoot(),
-    GoogleTagManagerModule.forRoot({
-      id: 'GTM-WXRQXV6',
-    })
+    GoogleTagManagerModule
   ],
   providers: [
     SoSService,
@@ -126,4 +121,3 @@ if ( environment.production ) {
   bootstrap: [AppComponent]
 })
 export class AppModule { }
- 

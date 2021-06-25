@@ -1,5 +1,5 @@
 const BigQueryPublicAccessKey = 'AIzaSyArlp3qQv07_qjGr9P6fjHwy10HXeFj-Fw';
-const YarraScrapeOAuthClientID = '805117261004-oul8f6c5uhbvi4n043klqpj5u7jd74co.apps.googleusercontent.com';
+//const YarraScrapeOAuthClientID = '805117261004-oul8f6c5uhbvi4n043klqpj5u7jd74co.apps.googleusercontent.com';
 
 export const environment = {
   production: false,
@@ -8,5 +8,5 @@ export const environment = {
   projectId: 'yarrascrape',
   dataAPIBasePath: 'http://localhost:8080',
   _DATASET: 'YarraPlanning',
-  BigQueryPublicAccessKey: 'AIzaSyArlp3qQv07_qjGr9P6fjHwy10HXeFj-Fw'
+  BigQueryPublicAccessKey: BigQueryPublicAccessKey
 };

@@ -22,7 +22,6 @@ export class HeritageSiteInfoComponent implements AfterViewInit {
   set heritageSiteInfo(heritageSiteInfo: HeritageSiteInfo) {
     this._heritageSiteInfo = heritageSiteInfo;
     if (heritageSiteInfo) {
-      gtag('event', 'site', { event_label: `siteinfo ${heritageSiteInfo.OriginalAddress}` });
       this.getDetails();
     }
   }

@@ -234,8 +234,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
       this._gtagService
       .eventEmitter(
-          'historicMap', 'select-map', 'mapId',
-          `${this.selectedMmbwMaps.map( name => name.MMBWmapId) }`, this.selectedMmbwMaps.length);
+          'view-item',
+          'historic-map',
+          `${this.selectedMmbwMaps.map( name => name.MMBWmapId) }`,
+          this.selectedMmbwMaps.length);
     });
 
     this.dataFormGroup.controls.shadingSchemesOptions.valueChanges.debounceTime(200).subscribe(() => {
@@ -253,7 +255,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
           value: `${currentShadingSchemesOptions}`
         });
         this._gtagService
-          .eventEmitter('overlay', 'select-view', 'shading', `${currentShadingSchemesOptions}`, 0);
+          .eventEmitter('view-item',
+                        'shading',
+                        `${currentShadingSchemesOptions}`, 0);
         // this.sidenavOpened = this.advancedControlsOpened; // leave opened to show new legend.
       }
     });
@@ -326,7 +330,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedOverlayProperties = event;
     this.dataFormGroup.patchValue({overlayId: this.selectedOverlayProperties.Overlay });
     this.sidenavOpened = this.advancedControlsOpened; // leave opened when advanced.
-    //this._gtagService.eventEmitter('Select','Overlay', `${this.selectedOverlayProperties.Overlay}`, 'click', 10);
 
     this.gtmService.pushTag({
         event: 'overlay',
@@ -335,7 +338,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         value: `${this.selectedOverlayProperties.Overlay}`
       });
     this._gtagService
-      .eventEmitter('overlay', 'select-content', `${this.selectedOverlayProperties.Overlay}`);
+      .eventEmitter('select-content',
+                    'overlay',
+                    `${this.selectedOverlayProperties.Overlay}`);
       }
 
   handleMapHeritageSiteHighlighted(event) {
@@ -351,13 +356,15 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     localStorage.setItem('selectedProperty',  JSON.stringify(this.selectedHeritageSiteInfo));
 
     this.gtmService.pushTag({
-      event: 'heritageSite',
+      event: 'heritageSite1',
       type:  'selected',
       data:  'siteAddress',
       value: `${this.selectedHeritageSiteInfo.EZI_ADD}`
     });
     this._gtagService
-    .eventEmitter('heritageSite', 'select-address',  `${this.selectedHeritageSiteInfo.EZI_ADD}`);
+    .eventEmitter('select-content',
+                  'heritage-site',
+                  `${this.selectedHeritageSiteInfo.EZI_ADD}`);
 
   }
 
@@ -422,9 +429,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         data:  `'${response.length} sites`,
         value: `${this.selectedOverlayProperties.Overlay}`      });
       this._gtagService
-      .eventEmitter('overlay', 'select-overlay', 'overlayID', `${this.selectedOverlayProperties.Overlay}`, 
-        response.length);
-  
+        .eventEmitter('select-content',
+                      'overlay',
+                      `${this.selectedOverlayProperties.Overlay}`,
+                      response.length);
       // TODO Should defer persisting selectedOverlayProperties until load is successful
       const appSettings: AppSettings = new AppSettings();
       appSettings.previousSelectedOverlay = this.selectedOverlayProperties.Overlay as string;
@@ -434,11 +442,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         // console.log('Error reading overlays');
         this.lintMessage = parseErrorMessage(error, `Error fetching heritage sites from Overlay : ${overlayId}`);
         this.showMessage(this.lintMessage, 15000);
-        gtag('event', 'exception', {
-          event_category: `query`,
-          event_label: `${overlayId}`,
-          value: `${this.lintMessage}`
-        });
         this.gtmService.pushTag({
           event: 'apiError',
           type:  `${overlayId}`,
@@ -446,7 +449,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
           value: `${this.lintMessage}`
         });
         this._gtagService
-        .eventEmitter('apiError', 'select-item', 'overlayId', `${this.selectedOverlayProperties.Overlay}`);  
+        .eventEmitter(
+            'api-error',
+            'overlay-list',
+             `${this.selectedOverlayProperties.Overlay}`);
     }
    );
   }
@@ -495,6 +501,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.startSpinner();
     this.dataService.getOverlays().subscribe(
+
       response => {
         this.stopSpinner();
         this.columns = Object.keys(response[0]);
@@ -520,7 +527,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
               this.showMessage('Zoom to the City of Yarra, near Melbourne then click an overlay on the map for its details', 5000);
             }
         }
-   },
+        this._gtagService.eventEmitter('view_item_list', 'overlays', 'not-set', response.length);
+      },
+
       error  => {
         this.stopSpinner();
         this.lintMessage = parseErrorMessage(error, 'Error fetching overlays: ');
@@ -532,6 +541,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
           data:  'errorMessage',
           value: `${this.lintMessage}`
         });
+        this._gtagService.eventEmitter('api-error', 'get-overlays', this.lintMessage);
       }
    );
   }
