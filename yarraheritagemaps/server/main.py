@@ -26,7 +26,7 @@ if __name__ == '__main__':
   # This code only runs when running locally. 
   # When deployed to cloud, A webserver process serves the app.
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = \
-    "C:/yarrascrapy/yarraplanning/yarraheritagemaps/server/secrets/yarrascrape-b30815080477.json"
+    "/mnt/c/yarrascrapy/yarraplanning/yarraheritagemaps/server/secrets/yarrascrape-b30815080477.json"
     app.run(host='127.0.0.1', port=8080, debug=True)
 
 '''    

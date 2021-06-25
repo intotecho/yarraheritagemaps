@@ -136,7 +136,7 @@ Address Components in register are
     'flat_number': '1'
     }
 
-Addressc components in VicMap - 
+Address components in VicMap -
 For definition of attributes in Address Data see VMAddress_Product_Specification.doc
 
 number_last_suffix,
@@ -169,6 +169,7 @@ Matching Fields
 ]
 
 # VicMap Attributes
+
 See buibuild_vicmap_address_attribs.py which generates a datatype object.
 python build_vicmap_address_attribs.py > vicmap_address_attribs.json  
 This is only needed once to generate the dtype map in match_addresses.py.
@@ -221,6 +222,7 @@ OUT_PROP,
 LABEL_ADD,
 
 # Load table into biq query
+
 - Need to specify the schema so that all types are string, except the dates.
 - Edit Table Schema on console as Text and drop in the contents of register_schema.json
 - Load output of estimate_dates.py to GCS. This is the input file for BQ.
@@ -228,7 +230,6 @@ LABEL_ADD,
 - `bq --dataset_id=YarraPlanning mk  --schema=./register_schema.json HERITAGE_REGISTER_C191_WITHVHD`
 - This table is then used to join YARRA PROPERTIES.
 - BQ Console Job options
-- Allow upto 4 errors, 
+- Allow up to 4 errors,
 - Skip header row
 - Allow new line in quotes
-

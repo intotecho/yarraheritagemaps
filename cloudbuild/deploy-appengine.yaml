@@ -1,4 +1,4 @@
-# This clodbuild config is not working.
+# This cloud build script is not working yet.
 steps:
 
   # Install node packages
@@ -9,7 +9,10 @@ steps:
   - name: 'gcr.io/cloud-builders/npm'
     args: [ '--prefix', 'yarraheritagemaps', 'run', 'build', ' --prod']
 
-npm run 
+  # Deploy to google cloud app egnine
+  - name: "gcr.io/cloud-builders/gcloud"
+    args: ['app', 'deploy',  'yarraheritagemaps/server/app.yaml', '--version=prod']
+
 substitutions:
   # PROJECT PARAMS
   _PROJECT_ID: yarrascrape

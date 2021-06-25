@@ -33,6 +33,7 @@ def go_home():  # noqa: E501
     """
     app.logger.error('frontend_controller.py:INDEX.HTML')
     response = flask.send_from_directory('app', 'index.html')
+    # response.headers['Access-Control-Allow-Origin'] = '*'
     response.direct_passthrough = False
     return response
 

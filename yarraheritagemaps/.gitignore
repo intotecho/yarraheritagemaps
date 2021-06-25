@@ -51,3 +51,4 @@ sample_kml/
 assets/test/
 third_party/geocodezip/
 
+server/secrets/*

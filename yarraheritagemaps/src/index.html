@@ -8,8 +8,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico?v2">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link href="https://codemirror.net/lib/codemirror.css" rel="stylesheet">
+  <!-- 
+    <link href="https://codemirror.net/lib/codemirror.css" rel="stylesheet">
+  -->
+  
 
+
+  <!-- Google Tag Manager -->
+  <script>
+    dataLayer = [{
+      'pageCategory': 'app',
+    }];
+  </script>
+
+  <!-- New Google Tag Manager Install -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-WXRQXV6');</script>
+  <!-- End Google Tag Manager -->
+
+  <!-- Used to init the google map -->
   <script  type="text/javascript">
     window.pendingMap = new Promise((resolve) => {
       window.initMap = () => resolve();
@@ -20,6 +40,8 @@
       };
     });
   </script>
+  -->
+  
   <!-- Maps API key for local development and production site. For custom apps, create a new API key. -->
   <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDpqCLE4_VZcGqJQGSgjLFpXiDdF7M6hD0&callback=initMap" async defer></script>
   <script type="text/javascript" async defer src="https://apis.google.com/js/api.js"
@@ -29,16 +51,24 @@
   <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/geocodezip/geoxml3@master/kmz/ZipFile.complete.js" async defer></script>
   <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/geocodezip/geoxml3@master/kmz/geoxml3.js" async defer></script>
   <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/geocodezip/geoxml3@master/ProjectedOverlay.js" async defer></script>
+
   <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script  type="text/javascript" async src="https://www.googletagmanager.com/gtag/js?id=UA-40216178-2"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-40216178-2"></script>
   <script  type="text/javascript">
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'UA-40216178-2');
   </script>
+ 
+  
 </head>
 <body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WXRQXV6"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
   <!-- App -->
   <app-root></app-root>
 </body>

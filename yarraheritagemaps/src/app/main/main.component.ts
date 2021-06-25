@@ -32,7 +32,7 @@ import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/add/operator/debounceTime.js';
 import 'rxjs/add/operator/map.js';
 import { SplitComponent, SplitAreaDirective } from 'angular-split';
-
+import { GoogleAnalyticsService } from './../google-analytics.service';
 import { StyleProps, StyleRule, LayerStyles } from '../services/styles.service';
 import { OverlaysAPIService,  OverlaysResponse, ColumnStat } from '../services/overlays-api.service';
 import { AppSettings } from '../services/appsettings.service';
@@ -70,7 +70,7 @@ import {
 
 import { HeritageSiteInfo } from './panels/heritage-site-info/heritage-site-info';
 import { MapComponent } from '../map/map.component';
-//import { HttpClient } from 'selenium-webdriver/http';
+// import { HttpClient } from 'selenium-webdriver/http';
 import { HttpClient, HttpHandler } from '@angular/common/http';
 
 const DEBOUNCE_MS = 1000;
@@ -123,7 +123,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   columnNames: Array<string>;
   bytesProcessed: Number = 0;
   lintMessage = '';
-  pending = true;
+  public pending = true;
   rows: Array<Object>;
   data: MatTableDataSource<Object>;
   stats: Map<String, ColumnStat> = new Map();
@@ -151,20 +151,22 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private dataService:  OverlaysAPIService,
+    private _gtagService: GoogleAnalyticsService,
     private _formBuilder: FormBuilder,
     private _renderer: Renderer2,
     private _snackbar: MatSnackBar,
     private _changeDetectorRef: ChangeDetectorRef,
     private _media: MediaMatcher,
     private _ngZone: NgZone) {
-
   }
 
   ngOnInit() {
     this.columns = [];
     this.columnNames = [];
     this.rows = [];
-
+    this
+    ._gtagService
+    .eventEmitter('config', 'UA-40216178-2',null, null);
     // Data form group
     const appSettings: AppSettings = new AppSettings();
 
@@ -222,7 +224,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         this.loadHeritageShadingScheme();
         this.updateStyles('vhdplaceid');
         this.showMessage(`Shading sites by ${currentAppSettings.selectedShadingScheme}`, 2000);
-        gtag('event', 'overlay', { event_label: `shading ${currentShadingSchemesOptions}` });
+        //gtag('event', 'overlay', { event_label: `shading ${currentShadingSchemesOptions}` });
+        this
+        ._gtagService
+        .eventEmitter('overlay', 'shading', `${currentShadingSchemesOptions}`, 'click', 10);
 
         // this.sidenavOpened = this.advancedControlsOpened; // leave opened to show new legend.
       }
@@ -285,7 +290,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedOverlayProperties = event;
     this.dataFormGroup.patchValue({overlayId: this.selectedOverlayProperties.Overlay });
     this.sidenavOpened = this.advancedControlsOpened; // leave opened when advanced.
-    gtag('event', 'overlay', { event_label: `select ${this.selectedOverlayProperties.Overlay}` });
+    this._gtagService.eventEmitter('Select',
+      'Overlay', `${this.selectedOverlayProperties.Overlay}`, 'click', 10);
   }
 
   handleMapHeritageSiteHighlighted(event) {
@@ -299,6 +305,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.highlightedHeritageSiteInfo = event;
     this.selectedHeritageSiteInfo = event;
     localStorage.setItem('selectedProperty',  JSON.stringify(this.selectedHeritageSiteInfo));
+    this._gtagService.eventEmitter('Select',
+      'Site', `${this.selectedHeritageSiteInfo.EZI_ADD}`, 'click', 10);
     // this.dataFormGroup.patchValue({overlayId: this.overlayProperties.Overlay });
   }
 
@@ -334,7 +342,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.pending) { return; }
     this.pending = true;
 
-    this.dataService.getOverlay(overlayId).subscribe(response =>
+    this.dataService.getOverlay(overlayId).subscribe(
+      response =>
     {
       this.pending = false;
       this.columns = Object.keys(response[0]);
@@ -365,7 +374,20 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
       })
       */
-   });
+   },
+    error  => {
+      this.pending = false;
+      this._changeDetectorRef.detectChanges();
+      // console.log('Error reading overlays');
+      this.lintMessage = parseErrorMessage(error, 'Error fetching overlays: ');
+      this.showMessage(this.lintMessage, 15000);
+      gtag('event', 'exception', {
+        event_category: `query`,
+        event_label: `${overlayId}`,
+        value: `${this.lintMessage}`
+      });
+  }
+   );
   }
 
   queryPlanningApplications(overlayId: string = null) {
@@ -404,14 +426,15 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
    });
   }
 
+  /* This will be the first query */
 
   queryOverlays(param: string = null) {
     if ((param !== 'initial') && (this.pending === true)) {
         return;
     }
     this.pending = true;
-    this.dataService.getOverlays().subscribe(response =>
-    {
+    this.dataService.getOverlays().subscribe(
+      response => {
       this.pending = false;
       this.columns = Object.keys(response[0]);
       this.rows = response;
@@ -436,18 +459,20 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
               this.showMessage('Zoom to the City of Yarra, near Melbourne then click an overlay on the map for its details', 5000);
             }
           }
-      /*
-      .catch((e) => {
-        this.lintMessage = parseErrorMessage('Error fetching overlays: ', e);
-        this.showMessage(this.lintMessage);
+   },
+      error  => {
+        this.pending = false;
+        this._changeDetectorRef.detectChanges();
+        // console.log('Error reading overlays');
+        this.lintMessage = parseErrorMessage(error, 'Error fetching overlays: ');
+        this.showMessage(this.lintMessage, 15000);
         gtag('event', 'exception', {
           event_category: `query`,
-          event_label: `${overlayId}`,
-          value: `sql: ${sql}, error: ${this.lintMessage}`
+          event_label: `overlays`,
+          value: `${this.lintMessage}`
         });
-      })
-      */
-   });
+      }
+   );
   }
 
   getPreviousOverlay(appSettings: AppSettings): OverlayProperties {

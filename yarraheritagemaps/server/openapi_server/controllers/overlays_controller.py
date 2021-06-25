@@ -24,11 +24,6 @@ CORS(app)
 
 DATASET = 'YarraPlanning'
 
-#GOOGLE_APPLICATION_CREDENTIALS="C:/yarrascrapy/yarraplanning/yarraheritagemaps/api/sandpit/secrets/yarrascrape-b30815080477.json"
-#from oauth2client.service_account import ServiceAccountCredentials
-#scopes = ['https://www.googleapis.com/auth/bigquery']
-
-
 
 def start_appengine(type=None):  # noqa: E501
     
@@ -49,11 +44,9 @@ def list_overlays(type=None):  # noqa: E501
     :type type: str
     :rtype: List[Overlay]
     """
-    #credentials = ServiceAccountCredentials.from_json_keyfile_name(GOOGLE_APPLICATION_CREDENTIALS, scopes=scopes)
     app.logger.info('Processing default request')
  
     client = bigquery.Client()
-    #client = bigquery.Client(credentials=credentials,  project="yarrascrape")
     query_job = client.query(queries.OVERLAYS_QUERY.format(DATASET))
     try:
       results = query_job.result() 

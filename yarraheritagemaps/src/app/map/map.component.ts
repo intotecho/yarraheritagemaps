@@ -62,6 +62,8 @@ export class MapComponent implements AfterViewInit {
   heritageSiteInfoComponentRef: ComponentRef<HeritageSiteInfoComponent>;
   // Basemap styles.
   pendingStyles: Promise<Array<google.maps.MapTypeStyle>>;
+  clickLockedOnSite = false;
+  clickLockedFeature: any  = null;
 
   // Styling service.
   readonly styler = new StylesService();
@@ -313,6 +315,7 @@ export class MapComponent implements AfterViewInit {
       }
     });
   }
+
   backgroundMatchingFeaturesFromLayer(layer, key, value) {
     layer.forEach((feature) => {
       if (Array.isArray(feature)) {
@@ -433,15 +436,15 @@ export class MapComponent implements AfterViewInit {
 
       this._planningLayer.addListener('mouseover', (event: google.maps.Data.MouseEvent) => {
 
-        this.highlightedHeritageSiteInfo = new HeritageSiteInfo(event);
-        this.heritageSiteChanged.emit(this.highlightedHeritageSiteInfo);
+          this.highlightedHeritageSiteInfo = new HeritageSiteInfo(event);
+          this.heritageSiteChanged.emit(this.highlightedHeritageSiteInfo);
 
-        if (event.feature) {
-          this._planningLayer.overrideStyle(event.feature, {
-            strokeWeight: 3,
-            zIndex: HERITAGE_SITE_ZINDEX
-          });
-        }
+          if (event.feature) {
+            this._planningLayer.overrideStyle(event.feature, {
+              strokeWeight: 3,
+              zIndex: HERITAGE_SITE_ZINDEX
+            });
+          }
       });
 
       this._planningLayer.addListener('mouseout', (event: google.maps.Data.MouseEvent) => {
@@ -463,7 +466,8 @@ export class MapComponent implements AfterViewInit {
         }
       });
 
-    } else {  // Heritage Properties layer
+    } else {
+      // Heritage Properties layer //
 
       this.removeFeaturesFromLayer(this._propertiesLayer); // remove property details from last render.
       this._propertiesLayer.setMap(null);
@@ -492,34 +496,78 @@ export class MapComponent implements AfterViewInit {
       appSettings.mapZoom = this.map.getZoom();
 
       this._propertiesLayer.addListener('mouseover', (event: google.maps.Data.MouseEvent) => {
+        const e : any = event;
+        const isTouch: boolean = e.hasOwnProperty('domEvent') && (e.domEvent.type === 'touchstart' );
+        
+        if ( !this.clickLockedOnSite  || isTouch ) {
 
-        this.highlightedHeritageSiteInfo = new HeritageSiteInfo(event);
-        this.heritageSiteChanged.emit(this.highlightedHeritageSiteInfo);
+          this.highlightedHeritageSiteInfo = new HeritageSiteInfo(event);
+          this.heritageSiteChanged.emit(this.highlightedHeritageSiteInfo);
 
-        if (event.feature) {
-          // console.log(this.highlightedHeritageSiteInfo.OriginalAddress);
-          this._propertiesLayer.overrideStyle(event.feature, {
-            strokeWeight: 3,
-            zIndex: HERITAGE_SITE_ZINDEX
-          });
-        } else {
-         //  console.log('mouse over no feature');
+          if (event.feature) {
+            // console.log(this.highlightedHeritageSiteInfo.OriginalAddress);
+            this._propertiesLayer.overrideStyle(event.feature, {
+              strokeWeight: 3,
+              zIndex: HERITAGE_SITE_ZINDEX
+            });
+          } else {
+          //  console.log('mouse over no feature');
+          }
         }
       });
 
       this._propertiesLayer.addListener('mouseout', (event: google.maps.Data.MouseEvent) => {
-        this.highlightedHeritageSiteInfo = null;
-        this.heritageSiteChanged.emit(null);
-        if (event.feature) {
-          this._propertiesLayer.overrideStyle(event.feature, {
+        const e : any = event;
+        const isTouch:boolean =  e.hasOwnProperty('domEvent') && (e.domEvent.type === 'touchstart' );
+
+        if ( !this.clickLockedOnSite  || isTouch ) {
+
+          this.highlightedHeritageSiteInfo = null;
+          this.heritageSiteChanged.emit(null);
+          if (event.feature) {
+            this._propertiesLayer.overrideStyle(event.feature, {
+                strokeWeight: 1,
+                zIndex: HERITAGE_SITE_ZINDEX + 100
+              });
+            }
+          }
+      });
+      this._propertiesLayer.addListener('dblclick', (event: google.maps.Data.MouseEvent) => {
+        this.selectedHeritageSiteInfo = new HeritageSiteInfo(event);
+        this.heritageSiteSelected.emit(this.selectedHeritageSiteInfo);
+        const feature = event ? event.feature : null;
+        if (feature) {
+          this.zone.run(() => this.onMarkerClick(this._propertiesLayer, event));
+        }
+      });
+
+      this._propertiesLayer.addListener('click', (event: google.maps.Data.MouseEvent) => {
+        if (this.clickLockedOnSite === false) {
+          //console.log('Click on the property again to unlock it');
+          this.clickLockedFeature = event.feature;
+          this._propertiesLayer.overrideStyle(this.clickLockedFeature, {
+            strokeWeight: 6,
+            zIndex: HERITAGE_SITE_ZINDEX
+          });
+      } else {
+          this.highlightedHeritageSiteInfo = null;
+          this.heritageSiteChanged.emit(null);
+          if (this.clickLockedFeature) {
+            this._propertiesLayer.overrideStyle(this.clickLockedFeature, {
               strokeWeight: 1,
               zIndex: HERITAGE_SITE_ZINDEX + 100
             });
+          }
+          if (event.feature) {
+            this._propertiesLayer.overrideStyle(event.feature, {
+              strokeWeight: 3,
+              zIndex: HERITAGE_SITE_ZINDEX
+            });
+          }
         }
-      });
-      this._propertiesLayer.addListener('click', (event: google.maps.Data.MouseEvent) => {
         this.selectedHeritageSiteInfo = new HeritageSiteInfo(event);
         this.heritageSiteSelected.emit(this.selectedHeritageSiteInfo);
+        this.clickLockedOnSite = !this.clickLockedOnSite; // lock onto the clicked site - disables mouseout
         const feature = event ? event.feature : null;
         if (feature) {
           this.zone.run(() => this.onMarkerClick(this._propertiesLayer, event));
@@ -597,7 +645,6 @@ export class MapComponent implements AfterViewInit {
   onMarkerClick(_layer, event: google.maps.Data.MouseEvent) {
 
     const feature: google.maps.Data.Feature = event ? event.feature : null;
-
     if (feature) {
       const properties = {};
       const div = document.createElement('div'); // To place component into.

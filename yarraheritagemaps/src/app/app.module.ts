@@ -62,6 +62,7 @@ import { LayerSelectComponent} from './map/layer-control/layer-control.component
 import { OverlayInfoComponent } from './main/panels/overlay-info/overlay-info.component';
 import { HeritageSiteInfoComponent } from './main/panels/heritage-site-info/heritage-site-info.component';
 import { SplitComponent, SplitAreaDirective } from 'angular-split';
+import { GoogleAnalyticsService} from './google-analytics.service';
 
 if ( environment.production ) {
   enableProdMode();
@@ -114,7 +115,9 @@ if ( environment.production ) {
     SoSService,
     OverlaysAPIService,
     LayersInfoService,
+    GoogleAnalyticsService
   ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
+ 
