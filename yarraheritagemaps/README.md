@@ -50,6 +50,13 @@ npm test
 ```
 ## Deployment 
 First build and then deploy the app
+
+```shell
+npm run build
+```
+
+npm run build will build the app to output path defined in angular.json  "outputPath": "server/app/",
+
 ```shell
 npm run build
 npm run deploy

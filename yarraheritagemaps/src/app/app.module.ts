@@ -62,7 +62,8 @@ import { LayerSelectComponent} from './map/layer-control/layer-control.component
 import { OverlayInfoComponent } from './main/panels/overlay-info/overlay-info.component';
 import { HeritageSiteInfoComponent } from './main/panels/heritage-site-info/heritage-site-info.component';
 import { SplitComponent, SplitAreaDirective } from 'angular-split';
-import { GoogleAnalyticsService} from './google-analytics.service';
+import { GoogleTagManagerModule, GoogleTagManagerService } from 'angular-google-tag-manager';
+import { GoogleAnalyticsService } from './google-analytics.service';
 
 if ( environment.production ) {
   enableProdMode();
@@ -109,13 +110,18 @@ if ( environment.production ) {
     ReactiveFormsModule,
     ColorPickerModule,
     HttpClientModule,
-    AngularSplitModule.forRoot()
+    AngularSplitModule.forRoot(),
+    GoogleTagManagerModule.forRoot({
+      id: 'GTM-WXRQXV6',
+    })
   ],
   providers: [
     SoSService,
     OverlaysAPIService,
     LayersInfoService,
-    GoogleAnalyticsService
+    GoogleAnalyticsService,
+    GoogleTagManagerService,
+    {provide: 'googleTagManagerId',  useValue: 'GTM-WXRQXV6'},
   ],
   bootstrap: [AppComponent]
 })

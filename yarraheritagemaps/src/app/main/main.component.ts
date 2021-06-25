@@ -37,6 +37,9 @@ import { StyleProps, StyleRule, LayerStyles } from '../services/styles.service';
 import { OverlaysAPIService,  OverlaysResponse, ColumnStat } from '../services/overlays-api.service';
 import { AppSettings } from '../services/appsettings.service';
 import { LayerDescription } from '../services/layers-info-service';
+import { HeritageSiteInfo } from './panels/heritage-site-info/heritage-site-info';
+import { GoogleTagManagerService } from 'angular-google-tag-manager';
+
 
 import {
   Step,
@@ -67,11 +70,9 @@ import {
 import {
   SelectMMBWOverlay, MMBWMapsLibrary
 } from '../services/select-MMBWOverlay';
+import { NavigationEnd, Router } from '@angular/router';
+import { map } from 'rxjs-compat/operator/map';
 
-import { HeritageSiteInfo } from './panels/heritage-site-info/heritage-site-info';
-import { MapComponent } from '../map/map.component';
-// import { HttpClient } from 'selenium-webdriver/http';
-import { HttpClient, HttpHandler } from '@angular/common/http';
 
 const DEBOUNCE_MS = 1000;
 
@@ -151,12 +152,14 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private dataService:  OverlaysAPIService,
+    private gtmService: GoogleTagManagerService,
     private _gtagService: GoogleAnalyticsService,
     private _formBuilder: FormBuilder,
     private _renderer: Renderer2,
     private _snackbar: MatSnackBar,
     private _changeDetectorRef: ChangeDetectorRef,
     private _media: MediaMatcher,
+    private router: Router,
     private _ngZone: NgZone) {
   }
 
@@ -164,9 +167,23 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.columns = [];
     this.columnNames = [];
     this.rows = [];
-    this
-    ._gtagService
-    .eventEmitter('config', 'UA-40216178-2',null, null);
+
+    this.gtmService.pushTag({
+      event: 'app-initialised',
+      data: 'none',
+    });
+
+    this.router.events.forEach(item => {
+      if (item instanceof NavigationEnd) {
+        const gtmTag = {
+          event: 'page',
+          pageName: item.url
+        };
+
+        this.gtmService.pushTag(gtmTag);
+      }
+    });
+
     // Data form group
     const appSettings: AppSettings = new AppSettings();
 
@@ -214,6 +231,11 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       });
       console.log(this.selectedMmbwMaps);
       this.sidenavOpened = this.advancedControlsOpened; // leave opened when advanced.
+
+      this._gtagService
+      .eventEmitter(
+          'historicMap', 'select-map', 'mapId',
+          `${this.selectedMmbwMaps.map( name => name.MMBWmapId) }`, this.selectedMmbwMaps.length);
     });
 
     this.dataFormGroup.controls.shadingSchemesOptions.valueChanges.debounceTime(200).subscribe(() => {
@@ -224,11 +246,14 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         this.loadHeritageShadingScheme();
         this.updateStyles('vhdplaceid');
         this.showMessage(`Shading sites by ${currentAppSettings.selectedShadingScheme}`, 2000);
-        //gtag('event', 'overlay', { event_label: `shading ${currentShadingSchemesOptions}` });
-        this
-        ._gtagService
-        .eventEmitter('overlay', 'shading', `${currentShadingSchemesOptions}`, 'click', 10);
-
+        this.gtmService.pushTag({
+          event: 'overlay',
+          type: 'change-view',
+          data: 'shading',
+          value: `${currentShadingSchemesOptions}`
+        });
+        this._gtagService
+          .eventEmitter('overlay', 'select-view', 'shading', `${currentShadingSchemesOptions}`, 0);
         // this.sidenavOpened = this.advancedControlsOpened; // leave opened to show new legend.
       }
     });
@@ -264,13 +289,22 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     false;
   }
 
+  startSpinner() {
+    this.pending = true;
+    this._changeDetectorRef.detectChanges();
+  }
+
+  stopSpinner() {
+    this.pending = false;
+    this._changeDetectorRef.detectChanges();
+  }
+
   handleSelectedLayersChanged(event) {
     const appSettings: AppSettings = new AppSettings();
     if (this.selectedLayersInfo !== event) {
       this.sidenavOpened = this.advancedControlsOpened; // leave opened when advanced.
     }
     this.selectedLayersInfo = event;
-    this._changeDetectorRef.detectChanges();
     if (this.islayerSelected(this.selectedLayersInfo, 'Planning')) {
         this.queryPlanningApplications(this.selectedOverlayProperties.Overlay);
         if (this.selectedOverlayProperties.Overlay.length > 0 ) {
@@ -278,7 +312,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
           this.showMessage(`Fist Select an Overlay`, 5000);
         }
-      }
+    }
+    this._changeDetectorRef.detectChanges();
+
   }
 
   handleMapOverlayHighlighted(event) {
@@ -290,9 +326,17 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedOverlayProperties = event;
     this.dataFormGroup.patchValue({overlayId: this.selectedOverlayProperties.Overlay });
     this.sidenavOpened = this.advancedControlsOpened; // leave opened when advanced.
-    this._gtagService.eventEmitter('Select',
-      'Overlay', `${this.selectedOverlayProperties.Overlay}`, 'click', 10);
-  }
+    //this._gtagService.eventEmitter('Select','Overlay', `${this.selectedOverlayProperties.Overlay}`, 'click', 10);
+
+    this.gtmService.pushTag({
+        event: 'overlay',
+        type:  'selected',
+        data:  'overlayId',
+        value: `${this.selectedOverlayProperties.Overlay}`
+      });
+    this._gtagService
+      .eventEmitter('overlay', 'select-content', `${this.selectedOverlayProperties.Overlay}`);
+      }
 
   handleMapHeritageSiteHighlighted(event) {
     this.highlightedHeritageSiteInfo = event;
@@ -305,9 +349,16 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.highlightedHeritageSiteInfo = event;
     this.selectedHeritageSiteInfo = event;
     localStorage.setItem('selectedProperty',  JSON.stringify(this.selectedHeritageSiteInfo));
-    this._gtagService.eventEmitter('Select',
-      'Site', `${this.selectedHeritageSiteInfo.EZI_ADD}`, 'click', 10);
-    // this.dataFormGroup.patchValue({overlayId: this.overlayProperties.Overlay });
+
+    this.gtmService.pushTag({
+      event: 'heritageSite',
+      type:  'selected',
+      data:  'siteAddress',
+      value: `${this.selectedHeritageSiteInfo.EZI_ADD}`
+    });
+    this._gtagService
+    .eventEmitter('heritageSite', 'select-address',  `${this.selectedHeritageSiteInfo.EZI_ADD}`);
+
   }
 
   onStepperChange(e: StepperSelectionEvent) {
@@ -340,62 +391,72 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
   queryHeritageSites(overlayId: string = null) {
     if (this.pending) { return; }
-    this.pending = true;
+    this.startSpinner();
 
     this.dataService.getOverlay(overlayId).subscribe(
       response =>
     {
-      this.pending = false;
-      this.columns = Object.keys(response[0]);
-      this.rows = response;
-      const heritageFill = this.getHeritageShadingFill();
-      const opaqueStyle = {isComputed: false, value: 0.3};
-      const heritageOpacity = opaqueStyle; // HERITAGE_SITE_FILL_OPACITY;
-      const appSettings: AppSettings = new AppSettings();
-
-      if (response[0].hasOwnProperty('vhdplaceid')) {
-            this.loadHeritageShadingScheme();
-            this.stylesFormGroup.controls.strokeColor.patchValue(HERITAGE_SITE_STROKE_COLOR);
-            this.schemaFormGroup.controls.geoColumn.patchValue({ geoColumn: 'bndry'});
-            this.updateStyles('vhdplaceid');
-            this.showMessage(`Showing Heritage properties within Overlay ${this.selectedOverlayProperties.Overlay}`, 5000);
-            // TODO Should defer persisting selectedOverlayProperties until load is successful
-            appSettings.previousSelectedOverlay = this.selectedOverlayProperties.Overlay as string;
+      this.stopSpinner();
+      if (response.length === 0 ) {
+        this.showMessage(`No heritage properties within Overlay ${this.selectedOverlayProperties.Overlay}`, 5000);
+        if (this.selectedOverlayProperties.IncludedInVHR === true) {
+        }
+      } else {
+        this.columns = Object.keys(response[0]);
+        this.rows = response;
+        const heritageFill = this.getHeritageShadingFill();
+        const opaqueStyle = {isComputed: false, value: 0.3};
+        const heritageOpacity = opaqueStyle; // HERITAGE_SITE_FILL_OPACITY;
+        if (response[0].hasOwnProperty('vhdplaceid')) {
+          this.loadHeritageShadingScheme();
+          this.stylesFormGroup.controls.strokeColor.patchValue(HERITAGE_SITE_STROKE_COLOR);
+          this.schemaFormGroup.controls.geoColumn.patchValue({ geoColumn: 'bndry'});
+          this.updateStyles('vhdplaceid');
+          this.showMessage(`Showing heritage properties within Overlay ${this.selectedOverlayProperties.Overlay}`, 5000);
+        }
       }
-      /*
-      .catch((e) => {
-        this.lintMessage = parseErrorMessage('Error fetching overlays: ', e);
-        this.showMessage(this.lintMessage);
+
+      this.gtmService.pushTag({
+        event: 'overlay',
+        type:  'select-item',
+        data:  `'${response.length} sites`,
+        value: `${this.selectedOverlayProperties.Overlay}`      });
+      this._gtagService
+      .eventEmitter('overlay', 'select-overlay', 'overlayID', `${this.selectedOverlayProperties.Overlay}`, 
+        response.length);
+  
+      // TODO Should defer persisting selectedOverlayProperties until load is successful
+      const appSettings: AppSettings = new AppSettings();
+      appSettings.previousSelectedOverlay = this.selectedOverlayProperties.Overlay as string;
+    },
+      error  => {
+        this.stopSpinner();
+        // console.log('Error reading overlays');
+        this.lintMessage = parseErrorMessage(error, `Error fetching heritage sites from Overlay : ${overlayId}`);
+        this.showMessage(this.lintMessage, 15000);
         gtag('event', 'exception', {
           event_category: `query`,
           event_label: `${overlayId}`,
-          value: `sql: ${sql}, error: ${this.lintMessage}`
+          value: `${this.lintMessage}`
         });
-
-      })
-      */
-   },
-    error  => {
-      this.pending = false;
-      this._changeDetectorRef.detectChanges();
-      // console.log('Error reading overlays');
-      this.lintMessage = parseErrorMessage(error, 'Error fetching overlays: ');
-      this.showMessage(this.lintMessage, 15000);
-      gtag('event', 'exception', {
-        event_category: `query`,
-        event_label: `${overlayId}`,
-        value: `${this.lintMessage}`
-      });
-  }
+        this.gtmService.pushTag({
+          event: 'apiError',
+          type:  `${overlayId}`,
+          data:  'errorMessage',
+          value: `${this.lintMessage}`
+        });
+        this._gtagService
+        .eventEmitter('apiError', 'select-item', 'overlayId', `${this.selectedOverlayProperties.Overlay}`);  
+    }
    );
   }
 
   queryPlanningApplications(overlayId: string = null) {
     if (this.pending) { return; }
-    this.pending = true;
+    this.startSpinner();
 
     this.dataService.getPlanningApplications(overlayId).subscribe(response => {
-      this.pending = false;
+      this.stopSpinner();
       console.log(response);
       this.columns = Object.keys(response[0]);
       this.rows = response;
@@ -432,18 +493,18 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     if ((param !== 'initial') && (this.pending === true)) {
         return;
     }
-    this.pending = true;
+    this.startSpinner();
     this.dataService.getOverlays().subscribe(
       response => {
-      this.pending = false;
-      this.columns = Object.keys(response[0]);
-      this.rows = response;
-      const heritageFill = this.getHeritageShadingFill();
-      const opaqueStyle = {isComputed: false, value: 0.3};
-      const heritageOpacity = opaqueStyle; // HERITAGE_SITE_FILL_OPACITY;
-      const appSettings: AppSettings = new AppSettings();
+        this.stopSpinner();
+        this.columns = Object.keys(response[0]);
+        this.rows = response;
+        const heritageFill = this.getHeritageShadingFill();
+        const opaqueStyle = {isComputed: false, value: 0.3};
+        const heritageOpacity = opaqueStyle; // HERITAGE_SITE_FILL_OPACITY;
+        const appSettings: AppSettings = new AppSettings();
 
-      if (response[0].hasOwnProperty('ZONE_DESC')) {
+        if (response[0].hasOwnProperty('ZONE_DESC')) {
             this.handleQueryOverlaysResponse();
             // setup custom styling
             this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, OVERLAY_FILL_COLOR.domain.length);
@@ -458,17 +519,17 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
             if (this._loadSitesForPreviousOverlay === false) {
               this.showMessage('Zoom to the City of Yarra, near Melbourne then click an overlay on the map for its details', 5000);
             }
-          }
+        }
    },
       error  => {
-        this.pending = false;
-        this._changeDetectorRef.detectChanges();
-        // console.log('Error reading overlays');
+        this.stopSpinner();
         this.lintMessage = parseErrorMessage(error, 'Error fetching overlays: ');
         this.showMessage(this.lintMessage, 15000);
-        gtag('event', 'exception', {
-          event_category: `query`,
-          event_label: `overlays`,
+        console.log(this.lintMessage);
+        this.gtmService.pushTag({
+          event: 'apiError',
+          type:  `getOverlays`,
+          data:  'errorMessage',
           value: `${this.lintMessage}`
         });
       }
@@ -480,9 +541,21 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     const previousOverlay = appSettings.previousSelectedOverlay;
     if (previousOverlay) {
       const foundLastSelectedOverlay: OverlayProperties = this.matchingOverlays.find( o => o.Overlay === previousOverlay);
+      this.gtmService.pushTag({
+        event: 'readStore',
+        type:  `getOverlays`,
+        data:  'returned',
+        value: `found ${foundLastSelectedOverlay}`
+      });
       return foundLastSelectedOverlay;
     }
-    return null;
+    this.gtmService.pushTag({
+      event: 'readStore',
+      type:  `getOverlays`,
+      data:  'returned',
+      value: `not found`
+    });
+  return null;
   }
 
   handleQueryOverlaysResponse() {

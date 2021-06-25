@@ -19,8 +19,9 @@ import 'rxjs/add/operator/debounceTime.js';
 import 'rxjs/add/operator/map.js';
 import { HttpClient } from '@angular/common/http';
 import{Router, NavigationEnd} from '@angular/router';
+import { GoogleTagManagerService } from 'angular-google-tag-manager';
 
-declare let gtag: Function;
+//declare let gtag: Function;
 
 @Component({
   selector: 'app-root',
@@ -32,19 +33,18 @@ export class AppComponent {
   readonly title = 'Yarra Heritage Maps';
   constructor(
     public viewContainerRef: ViewContainerRef,
+    public gtmService: GoogleTagManagerService,
     private http: HttpClient,
     public router: Router) {
       this.router.events.subscribe(event => {
-        
         if (event instanceof NavigationEnd) {
-             gtag('config', 'xx-xxxxx-xx',
-                   {
-                     'page_path': event.urlAfterRedirects
-                   }
-                  );
-          }
-       }
-      );
+            gtag('config', 'UA-40216178-2',
+                  {
+                    'page_path': event.urlAfterRedirects
+                  }
+                 );
+         }
+      });
     }
 }
 
