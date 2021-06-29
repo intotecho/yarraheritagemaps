@@ -41,7 +41,7 @@ export class OverlaysAPIService {
       }),
       responseType: 'text'
     };
-    this._apiUrl = environment.dataAPIBasePath  + '/overlays';
+    this._apiUrl = environment.yarraheritagemapsAPIBasePath  + '/overlays';
   }
 
   public getOverlays(): Observable<OverlaysResponse[]> {

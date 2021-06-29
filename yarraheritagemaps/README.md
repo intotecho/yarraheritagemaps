@@ -38,8 +38,12 @@ First run the api server in a bash shell. This requires a python environment. Se
 ### Preconditions
 
 - Choose an linux environment (WSL or git bash)
-- Create and Activate a python virtual environment with python > 3.7
-- Install required python libraries reqirements.txt
+- Set up a conda env called heritagemaps with python > 3.7
+- Activate the env
+- Install required python libraries requirements.txt
+- Create and download a credential for the app engine service account. 
+- Save the credential to a file, example somepath/secrets/credential.json. Don't add it to the repo.
+- Set the environment variable to this path. GOOGLE_APPLICATION_CREDENTIALS=somepath/secrets/credential.json
 - Start the server.
 
 For more info see [server/README.md](server/README.md)
@@ -100,16 +104,19 @@ npm run deploy
 
 If this doesn't work (it probably won't):
 
+- Create and download a credential for the app engine service account. 
+- Save the credential to a file, example somepath/secrets/credential.json. Don't add it to the repo.
 - Install gcloud, the google cloud SDK. https://cloud.google.com/sdk/docs/install
 - Set up a conda env called heritagemaps
 - Activate the env
-- Set any environment variables (TBD)
+- Set the environment variable to this path. GOOGLE_APPLICATION_CREDENTIALS=somepath/secrets/credential.json
 - Authenticate gcloud and set the project.
-- deploy the app with gcloud SDK.
+- Deploy the app with gcloud SDK.
 
 ```shell
 cd server 
 conda activate heritagemaps
+export GOOGLE_APPLICATION_CREDENTIALS=somepath/secrets/credential.json
 gcloud init
 gcloud app deploy --quiet app.yaml --project yarrascrape
 ```

@@ -16,7 +16,7 @@ import {
 
 
 /**
- * Utility class for returing the available layers and some metadata.
+ * Utility class for returning the available layers and some metadata.
  * For now returns a fixed list, but can later be replaced by a remote API.
  */
 @Injectable()

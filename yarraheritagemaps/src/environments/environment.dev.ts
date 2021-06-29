@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-const BigQueryPublicAccessKey = 'AIzaSyArlp3qQv07_qjGr9P6fjHwy10HXeFj-Fw';
-const YarraScrapeOAuthClientID = '805117261004-oul8f6c5uhbvi4n043klqpj5u7jd74co.apps.googleusercontent.com';
+
 
 export const environment = {
   production: false,
-  authClientID: '419125973937-kl2cru5pu2vfugne7lr1hosgseh4lo1s.apps.googleusercontent.com',
-  authScope: 'https://www.googleapis.com/auth/bigquery',
-  projectId: 'yarrascrape',
-  dataAPIBasePath: 'http://localhost:8080',
-  _DATASET: 'YarraPlanning',
-  BigQueryPublicAccessKey: 'AIzaSyArlp3qQv07_qjGr9P6fjHwy10HXeFj-Fw'
+  yarraheritagemapsAPIBasePath: 'http://localhost:8080',
+};
+
+
+const YarraScrapeOAuthClientID = 'XXXXXX.apps.googleusercontent.com'; //Keep it secret don't check it in
+
+
+export const bigquery_environment = {
+  authClientID: YarraScrapeOAuthClientID,  // Not used anymore since rest API replaces bigquery service
+  authScope: 'https://www.googleapis.com/auth/bigquery', // Not used anymore since rest API replaces bigquery service
+  projectId: 'yarrascrape', // Not used anymore since rest API replaces bigquery service
+  _DATASET: 'YarraPlanning',  // Not used anymore since rest API replaces bigquery service
 };

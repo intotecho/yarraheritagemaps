@@ -4,25 +4,36 @@ basic_scaling:
 
 handlers:
 # The endpoints handler must be mapped to /_ah/api.
+
+# /overlays is the main REST API
 - url: /overlays/v1/.*
   script: auto
 
+# main url serves the angular app
 - url: /
   secure: always
   static_files: app/index.html
   upload: app/index.html
 
-- url: /terms
-  secure: always
-  static_files: app/index.html
-  upload: app/index.html
+# this is not a real page as its an angular component.
+#- url: /terms
+#  secure: always
+#  static_files: app/index.html
+#  upload: app/index.html
 
 - url: /(favicon.ico*)$
   secure: always
   static_files: app/\1
   upload: app/(.*)
 
+# Assets are stored in app folder.
 - url: /(.*\.(js|css|map|json|ico|kml))$
   secure: always
   static_files: app/\1
   upload: app/(.*)
+
+#includes:
+# - env_variables.yaml
+# inside env_variables.yaml
+#env_variables:
+#  SECRET: 'my_secret'

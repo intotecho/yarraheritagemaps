@@ -32,7 +32,7 @@ def start_appengine(type=None):  # noqa: E501
      # noqa: E501
     :rtype: String 
     """
-    app.logger.info('Processing App Start  request')
+    app.logger.info('Processing App Start request')
     return 'Startup no-op'
 
 def list_overlays(type=None):  # noqa: E501
@@ -44,7 +44,7 @@ def list_overlays(type=None):  # noqa: E501
     :type type: str
     :rtype: List[Overlay]
     """
-    app.logger.info('Processing default request')
+    app.logger.info('list overlays request')
  
     client = bigquery.Client()
     query_job = client.query(queries.OVERLAYS_QUERY.format(DATASET))
@@ -84,10 +84,10 @@ def show_overlay_by_id(overlay_id, infotype=None):  # noqa: E501
     :type overlay_id: str
     :rtype: Overlay
     """
-    app.logger.info('Processing request - Heritage Sitess in Overlay')
     client = bigquery.Client()
     if infotype=='planning':
       query_job = client.query(queries.PLANNING_APPS_QUERY.format(DATASET, overlay_id))
+      app.logger.info('Get Planninf for Overlay {}'.format(overlay_id))
       try:
         results = query_job.result() 
         #app.logger.error(results)
@@ -109,7 +109,6 @@ def show_overlay_by_id(overlay_id, infotype=None):  # noqa: E501
             'dist_meters': row.dist_meters,
             'bndry': row.bndry
           }
-          #app.logger.info(row.Overlay)
           jsondoc.append(item)
         return jsondoc
       except IndexError:
@@ -118,6 +117,7 @@ def show_overlay_by_id(overlay_id, infotype=None):  # noqa: E501
 
     else:
       query_job = client.query(queries.HERITAGE_SITE_QUERY.format(DATASET, overlay_id))
+      app.logger.info('Get Heritage Sites for Overlay {}'.format(overlay_id))
       try:
         results = query_job.result() 
         #app.logger.error(results)
@@ -147,7 +147,6 @@ def show_overlay_by_id(overlay_id, infotype=None):  # noqa: E501
           }
           #app.logger.info(row.Overlay)
           jsondoc.append(item)
-        #json.JSONEncoder.default(    
         return jsondoc 
       except IndexError:
         app.logger.error('No Heritage Sites in Overlay {}'.format(overlay_id))

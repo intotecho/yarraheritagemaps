@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const BigQueryPublicAccessKey = 'AIzaSyArlp3qQv07_qjGr9P6fjHwy10HXeFj-Fw';
-const YarraScrapeOAuthClientID = '805117261004-oul8f6c5uhbvi4n043klqpj5u7jd74co.apps.googleusercontent.com';
+
 
 export const environment = {
   production: true,
-  authClientID: YarraScrapeOAuthClientID,
-  authScope: 'https://www.googleapis.com/auth/bigquery',
-  projectId: 'yarrascrape',
-  dataAPIBasePath: 'https://yarrascrape.appspot.com',
-  _DATASET: 'YarraPlanning' // not used.
+  yarraheritagemapsAPIBasePath: 'https://yarrascrape.appspot.com',
+};
+
+
+const YarraScrapeOAuthClientID = 'XXXXXXXXXXXX.apps.googleusercontent.com'; //Keep it secret don't check it in
+export const bigquery_environment = {
+  authClientID: YarraScrapeOAuthClientID,  // Not used anymore since rest API replaces bigquery service
+  authScope: 'https://www.googleapis.com/auth/bigquery', // Not used anymore since rest API replaces bigquery service
+  projectId: 'yarrascrape', // Not used anymore since rest API replaces bigquery service
+  _DATASET: 'YarraPlanning',  // Not used anymore since rest API replaces bigquery service
 };

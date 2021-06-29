@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { environment } from '../environments/environment';
+import { environment, bigquery_environment } from '../environments/environment';
 import * as colorbrewer from 'colorbrewer';
 
 export const Step = {
@@ -49,7 +49,7 @@ export const Step = {
   earliest,
   bndry
   FROM
-  \`yarrascrape.${environment._DATASET}.YARRAHERITAGEMAPS_PROPERTIES\` as register
+  \`yarrascrape.${bigquery_environment._DATASET}.YARRAHERITAGEMAPS_PROPERTIES\` as register
   WHERE
   register.Overlay = @overlay
 `;
@@ -62,7 +62,7 @@ export const PLANNING_APPS_QUERY = `
     ),
     overlay AS (
       SELECT ST_GeogFromGeoJson(geom) AS polygon
-      FROM  \`yarrascrape.${environment._DATASET}.YARRA_OVERLAYS\`, params
+      FROM  \`yarrascrape.${bigquery_environment._DATASET}.YARRA_OVERLAYS\`, params
       WHERE Overlay = @overlay
     ),
     applications AS (
@@ -82,7 +82,7 @@ export const PLANNING_APPS_QUERY = `
         ST_GeogPoint(longitude, latitude) AS bndry,
         ST_Distance(ST_GeogPoint(longitude, latitude), overlay.polygon) AS dist_meters
       FROM
-      \`yarrascrape.${environment._DATASET}.YARRAHERITAGEMAPS_PROPERTIES\`,
+      \`yarrascrape.${bigquery_environment._DATASET}.YARRAHERITAGEMAPS_PROPERTIES\`,
         params,
         overlay
       WHERE ST_DWithin(ST_GeogPoint(longitude, latitude), overlay.polygon,  params.maxdist_km*1000)
@@ -109,7 +109,7 @@ export const OVERLAYS_QUERY = `
     Status,
     OverlayBoundary as bndry
     FROM
-    \`yarrascrape.${environment._DATASET}.OVERLAYS\` as overlays
+    \`yarrascrape.${bigquery_environment._DATASET}.OVERLAYS\` as overlays
     `;
 
   /*
